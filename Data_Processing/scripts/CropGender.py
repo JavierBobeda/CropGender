@@ -2,11 +2,9 @@ import os
 import json
 import pprint
 from classes.FaceImage import FaceImage
-    
 
-dirname = os.path.dirname(__file__)
-project_fold = os.path.abspath(os.path.join(dirname, os.pardir))
-datafolder = os.path.join(project_fold, "data")
+
+datafolder = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/Data_Processing/data"
 images = [os.path.join(datafolder, i) for i in os.listdir(datafolder) if ".jpg" in i]
 print("Images selected: ", len(images))
 all_labels = {}
