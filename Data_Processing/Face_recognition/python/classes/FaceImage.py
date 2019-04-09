@@ -1,14 +1,8 @@
 import os
 import cv2 as cv
+from classes.ImageOperations import ImageOperations
 
-
-class FaceImage:
-    
-    def __init__(self, ImageIn = ""):
-        if not os.path.exists(ImageIn):
-            raise Exception("No image found")
-        self.imageName = ImageIn
-        self.image = cv.imread(ImageIn)
+class FaceImage(ImageOperations):
     
     def cropFace(self, conf_threshold=0.7):
         """
@@ -22,8 +16,8 @@ class FaceImage:
             faces: list of the cropped images' path
 
         """
-        faceProto = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/models/opencv_face_detector.pbtxt"
-        faceModel = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/models/opencv_face_detector_uint8.pb"
+        faceProto = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/Data_Processing/models/opencv_face_detector.pbtxt"
+        faceModel = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/Data_Processing/models/opencv_face_detector_uint8.pb"
         net = cv.dnn.readNet(faceModel, faceProto)
         frameOpencvDnn = self.image.copy()
         frameHeight = frameOpencvDnn.shape[0]
@@ -48,7 +42,7 @@ class FaceImage:
             print("{} faces detected".format(len(bboxes)))
         
         # Creates cropping directory
-        crop_dir = os.path.join(os.path.dirname(self.imageName), "Crops")
+        crop_dir = os.path.join(self.imagePath, "Crops")
         try:
             os.stat(crop_dir)
         except:
@@ -57,15 +51,10 @@ class FaceImage:
         # Crops images and stores them
         faces = []
         for i, bbox in enumerate(bboxes):
-            # print(bbox)
-            padding = 20
-            face = self.image[max(0,bbox[1]-padding):min(bbox[3]+padding,frameHeight-1),max(0,bbox[0]-padding):min(bbox[2]+padding, frameWidth-1)]
-            if not face.shape[0] or not face.shape[1]:
-                print("Failed cropping")
-            else:
-                cropName = os.path.join(crop_dir, os.path.basename(self.imageName).split(".")[0] + "_crop{}".format(str(i+1)) + ".jpg")
-                cv.imwrite(cropName, face)
-                faces.append(cropName)
+            cropName = os.path.join(crop_dir, self.imageName.split(".")[0] + "_crop{}".format(str(i+1)) + ".jpg")
+            face, _ = self.crop(bbox=bbox)
+            cv.imwrite(cropName, face)
+            faces.append(cropName)
             
         return faces
     
@@ -81,8 +70,8 @@ class FaceImage:
 
         """
         
-        genderProto = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/models/gender_deploy.prototxt"
-        genderModel = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/models/gender_net.caffemodel"
+        genderProto = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/Data_Processing/models/gender_deploy.prototxt"
+        genderModel = "/notebooks/Crisalix/data_engineer_test/data_engineer_test/Data_Processing/models/gender_net.caffemodel"
 
         MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
         genderList = ['Male', 'Female']
